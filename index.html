@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PanchoBus – USFQ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<aside id="sidebar" style="display:none;">
+  <div class="sidebar-logo">
+    <div class="brand">PanchoBus</div>
+    <div class="sub">USFQ · Transporte</div>
+  </div>
+  <nav class="nav-menu">
+    <button class="nav-item-btn active" data-view="inicio" onclick="showView('inicio')"><i class="bi bi-house-fill"></i> Inicio</button>
+    <button class="nav-item-btn" data-view="rutas" onclick="showView('rutas')"><i class="bi bi-map-fill"></i> Rutas y Mapa</button>
+    <button class="nav-item-btn" data-view="planificador" onclick="showView('planificador')"><i class="bi bi-calendar3"></i> Planificador</button>
+    <button class="nav-item-btn" data-view="notificaciones" onclick="showView('notificaciones')">
+      <i class="bi bi-bell-fill"></i> Notificaciones
+      <span class="ms-auto badge rounded-pill" id="badge-sidebar" style="background:var(--red);font-size:.6rem;display:none;">0</span>
+    </button>
+    <button class="nav-item-btn" data-view="perfil" onclick="showView('perfil')"><i class="bi bi-person-fill"></i> Mi Perfil</button>
+    <button class="nav-item-btn" data-view="ajustes" onclick="showView('ajustes')"><i class="bi bi-gear-fill"></i> Ajustes</button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-moon-fill" style="color:var(--text-muted);font-size:.9rem;"></i>
+      <span style="font-size:.78rem;color:var(--text-muted);font-weight:500;flex:1;">Modo oscuro</span>
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input dark-toggle" type="checkbox" onchange="toggleDark(this)" style="cursor:pointer;" />
+      </div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar">--</div>
+      <div><div class="user-name">Cargando...</div><div class="user-id">...</div></div>
+    </div>
+  </div>
+</aside>
+
+<div id="main">
+  <header id="topbar" style="display:none;">
+    <div class="d-flex align-items-center gap-2">
+      <button class="icon-btn d-md-none" onclick="toggleSidebar()" title="Menú"><i class="bi bi-list" style="font-size:1.2rem;"></i></button>
+      <span class="topbar-title" id="topbar-title">Inicio</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="showView('notificaciones')" title="Notificaciones"><i class="bi bi-bell-fill"></i></button>
+      <button class="icon-btn" onclick="showView('ajustes')" title="Ajustes"><i class="bi bi-gear-fill"></i></button>
+    </div>
+  </header>
+
+  <main id="content">
+
+    <!-- VIEW: LANDING (pública) -->
+    <div class="view active" id="view-landing">
+      <!-- Hero -->
+      <div class="landing-hero">
+        <div class="landing-hero-text">
+          <div class="landing-logo">PanchoBus</div>
+          <div class="landing-tagline">El transporte de la USFQ,<br>en tu bolsillo.</div>
+          <p class="landing-desc">Consulta rutas, horarios y paradas del bus universitario. Reserva tu asiento y planifica tu semana desde cualquier dispositivo.</p>
+          <div class="d-flex gap-3 flex-wrap mt-4">
+            <button class="btn-red" onclick="showView('login'); switchAuthTab('registro')">Crear cuenta</button>
+            <button class="btn-outline-red" onclick="showView('login'); switchAuthTab('login')">Iniciar sesión</button>
+          </div>
+        </div>
+        <div class="landing-hero-icon">
+          <i class="bi bi-bus-front-fill"></i>
+        </div>
+      </div>
+
+      <!-- Cómo funciona -->
+      <div class="landing-section">
+        <div class="section-title text-center mb-4" style="font-size:.85rem;">¿Cómo funciona?</div>
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <div class="landing-step">
+              <div class="landing-step-num">1</div>
+              <i class="bi bi-person-plus-fill landing-step-icon"></i>
+              <div class="landing-step-title">Regístrate</div>
+              <div class="landing-step-desc">Crea tu cuenta con tu correo institucional USFQ.</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="landing-step">
+              <div class="landing-step-num">2</div>
+              <i class="bi bi-map-fill landing-step-icon"></i>
+              <div class="landing-step-title">Explora rutas</div>
+              <div class="landing-step-desc">Consulta todas las rutas, paradas y horarios disponibles.</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="landing-step">
+              <div class="landing-step-num">3</div>
+              <i class="bi bi-calendar-check-fill landing-step-icon"></i>
+              <div class="landing-step-title">Reserva tu asiento</div>
+              <div class="landing-step-desc">Asegura tu cupo y planifica tu semana con el calendario.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rutas principales -->
+      <div class="landing-section">
+        <div class="section-title text-center mb-4" style="font-size:.85rem;">Rutas principales</div>
+        <div class="row g-2">
+          <div class="col-6 col-md-3"><div class="landing-route-chip"><i class="bi bi-geo-alt-fill me-2"></i>Ruta 1 · Cumbayá-Lumbisí</div></div>
+          <div class="col-6 col-md-3"><div class="landing-route-chip"><i class="bi bi-geo-alt-fill me-2"></i>Ruta 2A · Condado</div></div>
+          <div class="col-6 col-md-3"><div class="landing-route-chip"><i class="bi bi-geo-alt-fill me-2"></i>Ruta 3B · Machala</div></div>
+          <div class="col-6 col-md-3"><div class="landing-route-chip"><i class="bi bi-geo-alt-fill me-2"></i>Ruta 3A · San Luis</div></div>
+          <div class="col-6 col-md-3"><div class="landing-route-chip"><i class="bi bi-geo-alt-fill me-2"></i>Ruta 4 · Carcelén</div></div>
+          <div class="col-6 col-md-3"><div class="landing-route-chip text-muted" style="opacity:.5;">+ más rutas...</div></div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 pb-4">
+        <button class="btn-red" onclick="showView('login'); switchAuthTab('registro')">
+          <i class="bi bi-arrow-right-circle-fill me-2"></i>Comenzar ahora
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW: LOGIN / REGISTRO -->
+    <div class="view" id="view-login">
+      <div class="login-screen">
+        <div class="login-card">
+          <div class="text-center mb-4">
+            <div class="login-logo">PanchoBus</div>
+            <div class="login-sub">USFQ · Sistema de Transporte</div>
+          </div>
+          <p class="text-center mb-3" style="font-size:.75rem;color:var(--text-muted);">¿Qué es PanchoBus? <a href="#" onclick="showView('landing');return false;" style="color:var(--red);font-weight:600;">Ver más</a></p>
+          <div class="pb-tabs mb-4">
+            <button class="pb-tab active" id="tab-login"    onclick="switchAuthTab('login')">Iniciar sesión</button>
+            <button class="pb-tab"        id="tab-registro" onclick="switchAuthTab('registro')">Crear cuenta</button>
+          </div>
+          <!-- Login -->
+          <div id="panel-login">
+            <form id="inicio-sesion">
+              <div class="mb-3">
+                <label class="form-label-pb">Correo institucional</label>
+                <input type="email" class="pb-input" id="login-correo" placeholder="ejemplo@estud.usfq.edu.ec" required />
+              </div>
+              <div class="mb-4">
+                <label class="form-label-pb">Contraseña</label>
+                <input type="password" class="pb-input" id="login-pwd" placeholder="Mínimo 6 caracteres" required />
+              </div>
+              <button type="submit" class="btn-red w-100">Iniciar sesión</button>
+            </form>
+            <p id="mensaje-inicio-sesion" class="auth-msg mt-3"></p>
+          </div>
+          <!-- Registro -->
+          <div id="panel-registro" style="display:none;">
+            <form id="form-registro">
+              <div class="mb-3">
+                <label class="form-label-pb">Nombre completo</label>
+                <input type="text" class="pb-input" id="reg-nombre" placeholder="Ej. Juana Pérez" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label-pb">Código Banner (ID estudiantil)</label>
+                <input type="text" class="pb-input" id="reg-banner" placeholder="Ej. 00349766" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label-pb">Teléfono</label>
+                <input type="tel" class="pb-input" id="reg-telefono" placeholder="Ej. 0991234567" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label-pb">Correo institucional</label>
+                <input type="email" class="pb-input" id="reg-correo" placeholder="ejemplo@estud.usfq.edu.ec" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label-pb">Ruta personal preferida</label>
+                <select class="pb-input" id="reg-ruta">
+                  <option value="">Cargando rutas...</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label-pb">Contraseña</label>
+                <input type="password" class="pb-input" id="reg-pwd" placeholder="Mínimo 6 caracteres" required />
+              </div>
+              <div class="mb-4">
+                <label class="form-label-pb">Confirmar contraseña</label>
+                <input type="password" class="pb-input" id="reg-pwd2" placeholder="Repite la contraseña" required />
+              </div>
+              <button type="submit" class="btn-red w-100">Crear cuenta</button>
+            </form>
+            <p id="mensaje-registro" class="auth-msg mt-3"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: INICIO -->
+    <div class="view" id="view-inicio">
+      <div class="row g-3">
+        <div class="col-12" id="contenedor-reservas-inicio"></div>
+        <div class="col-4"><div class="stat-card"><div class="stat-val">12</div><div class="stat-lbl">Viajes este mes</div></div></div>
+        <div class="col-4"><div class="stat-card"><div class="stat-val">3</div><div class="stat-lbl">Rutas favoritas</div></div></div>
+        <div class="col-4"><div class="stat-card"><div class="stat-val">R1</div><div class="stat-lbl">Ruta frecuente</div></div></div>
+        <div class="col-12 col-lg-7">
+          <div class="card-base p-3">
+            <div class="section-title mb-2">Paradas cercanas</div>
+            <div class="input-icon-wrap mb-3"><i class="bi bi-search"></i><input type="text" class="pb-input" placeholder="Buscar rutas o paradas…" /></div>
+            <div id="map-inicio" style="height:220px;border-radius:var(--radius);z-index:1;"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-5">
+          <div class="card-base p-3">
+            <div class="section-title">Rutas disponibles ahora</div>
+            <div class="route-item" onclick="showView('rutas')">
+              <div class="route-icon"><i class="bi bi-bus-front-fill"></i></div>
+              <div><div class="route-name">Ver estado actual</div><div class="route-time">Ir al mapa de rutas</div></div>
+              <span class="route-badge badge-gray">Actualizar</span>
+            </div>
+            <button class="btn-outline-red w-100 mt-2" onclick="showView('rutas')">Ver todas las rutas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: RUTAS -->
+    <div class="view" id="view-rutas">
+      <div class="row g-3">
+        <div class="col-12"><div class="input-icon-wrap"><i class="bi bi-search"></i><input type="text" class="pb-input" placeholder="Buscar ruta por nombre o destino…" /></div></div>
+        <div class="col-12 col-lg-8">
+          <div class="card-base p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="section-title mb-0">Mapa de rutas</div>
+              <div class="d-flex gap-2">
+                <button class="icon-btn" title="Filtrar"><i class="bi bi-funnel-fill"></i></button>
+                <button class="icon-btn" title="Pantalla completa"><i class="bi bi-arrows-fullscreen"></i></button>
+              </div>
+            </div>
+            <div id="map-rutas" style="height:360px;border-radius:var(--radius);z-index:1;"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card-base p-3" style="height:100%;"><div class="section-title">Todas las rutas</div><div id="all-routes-list"></div></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- VIEW: RUTA DETALLE -->
+    <div class="view" id="view-ruta-detalle">
+      <div class="row g-3">
+        <div class="col-12">
+          <button class="btn-outline-red" style="padding:6px 16px;font-size:.8rem;" onclick="showView('rutas')">
+            <i class="bi bi-arrow-left me-1"></i>Volver a rutas
+          </button>
+        </div>
+        <div class="col-12 col-lg-5">
+          <div class="card-base p-3">
+            <div id="ruta-detalle-info">
+              <!-- Renderizado por JS -->
+            </div>
+          </div>
+          <div class="card-base p-3 mt-3">
+            <div class="section-title">Paradas</div>
+            <div id="ruta-detalle-paradas"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-7">
+          <div class="card-base p-3">
+            <div class="section-title mb-2">Mapa de la ruta</div>
+            <div id="map-detalle" style="height:420px;border-radius:var(--radius);z-index:1;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PLANIFICADOR -->
+    <div class="view" id="view-planificador">
+      <div class="row g-3">
+        <div class="col-12" id="contenedor-reservas-planificador"></div>
+        <div class="col-12 col-lg-5">
+          <div class="card-base p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="section-title mb-0">Rutas disponibles</div>
+              <button class="icon-btn" style="width:auto;padding:4px 10px;font-size:.75rem;" title="Cambiar destino"><i class="bi bi-arrow-repeat me-1"></i>Destino</button>
+            </div>
+            <div id="planificador-routes-list"></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-7">
+          <div class="card-base p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="section-title mb-0">Calendario — ¡Planifica tu semana!</div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="icon-btn"><i class="bi bi-chevron-left"></i></button>
+                <span style="font-size:.78rem;font-weight:600;color:var(--text);">Semana Actual</span>
+                <button class="icon-btn"><i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calendario-dinamico"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: NOTIFICACIONES -->
+    <div class="view" id="view-notificaciones">
+      <div class="row g-3">
+        <div class="col-12 col-lg-7">
+          <div class="card-base p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="section-title mb-0">Notificaciones recientes</div>
+              <button class="btn-outline-red" style="padding:5px 14px;font-size:.72rem;" onclick="marcarTodasLeidas()">Marcar todas leídas</button>
+            </div>
+            <div id="lista-notificaciones"><p class="text-center mt-3" style="font-size:.8rem;color:var(--text-muted);">Cargando alertas...</p></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-5">
+          <div class="card-base p-3">
+            <div class="section-title">Configurar alertas</div>
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--border);">
+              <div><div style="font-size:.85rem;font-weight:600;color:var(--text);">Salida próxima del bus</div><div style="font-size:.72rem;color:var(--text-muted);">30 min antes</div></div>
+              <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked /></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--border);">
+              <div><div style="font-size:.85rem;font-weight:600;color:var(--text);">Alertas de tráfico</div><div style="font-size:.72rem;color:var(--text-muted);">En tu ruta reservada</div></div>
+              <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked /></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--border);">
+              <div><div style="font-size:.85rem;font-weight:600;color:var(--text);">Noticias y eventos USFQ</div><div style="font-size:.72rem;color:var(--text-muted);">Comunicados del campus</div></div>
+              <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" /></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center py-2">
+              <div><div style="font-size:.85rem;font-weight:600;color:var(--text);">Ocupación del bus</div><div style="font-size:.72rem;color:var(--text-muted);">Cupo disponible en tiempo real</div></div>
+              <div class="form-check form-switch mb-0"><input class="form-check-input" type="checkbox" checked /></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PERFIL -->
+    <div class="view" id="view-perfil">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <div class="card-base p-4 text-center">
+            <div style="width:72px;height:72px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;font-weight:700;margin:0 auto 12px;" class="user-avatar">--</div>
+            <div style="font-size:1.1rem;font-weight:800;color:var(--text);" class="user-name">Cargando...</div>
+            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px;" class="user-id">...</div>
+            <button class="btn-outline-red w-100" onclick="showView('ajustes')"><i class="bi bi-pencil-fill me-1"></i>Editar perfil</button>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="carnet">
+            <div class="carnet-header"><div class="carnet-logo">PanchoBus</div><div class="carnet-chip">USFQ</div></div>
+            <div class="carnet-avatar user-avatar">--</div>
+            <div class="carnet-name user-name">Cargando...</div>
+            <div class="carnet-id user-id">...</div>
+            <div class="carnet-footer">
+              <div class="carnet-field"><label>Facultad</label><span>Ingeniería</span></div>
+              <div class="carnet-field"><label>Vigencia</label><span>2025–2026</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="card-base p-3">
+            <div class="section-title">Mi cuenta</div>
+            <button class="nav-item-btn" style="border-radius:10px;margin-bottom:4px;color:var(--text);" onclick="showView('rutas')"><i class="bi bi-star-fill text-red"></i> Mis rutas favoritas<i class="bi bi-chevron-right ms-auto" style="font-size:.8rem;color:var(--text-muted);"></i></button>
+            <button class="nav-item-btn" style="border-radius:10px;margin-bottom:4px;color:var(--text);" onclick="showView('planificador')"><i class="bi bi-clock-history text-red"></i> Historial de viajes<i class="bi bi-chevron-right ms-auto" style="font-size:.8rem;color:var(--text-muted);"></i></button>
+            <button class="nav-item-btn" style="border-radius:10px;margin-bottom:4px;color:var(--text);"><i class="bi bi-person-vcard-fill text-red"></i> Carnet digital<i class="bi bi-chevron-right ms-auto" style="font-size:.8rem;color:var(--text-muted);"></i></button>
+            <button class="nav-item-btn" style="border-radius:10px;margin-bottom:4px;color:var(--text);" onclick="showView('ajustes')"><i class="bi bi-headset text-red"></i> Soporte técnico<i class="bi bi-chevron-right ms-auto" style="font-size:.8rem;color:var(--text-muted);"></i></button>
+            <div class="divider"></div>
+            <button class="nav-item-btn" style="border-radius:10px;color:#e53935;" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: AJUSTES -->
+    <div class="view" id="view-ajustes">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="card-base p-4">
+            <div class="section-title">Apariencia</div>
+            <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid var(--border);">
+              <div><div style="font-size:.9rem;font-weight:600;color:var(--text);">Modo oscuro</div><div style="font-size:.75rem;color:var(--text-muted);">Cambia entre tema claro y oscuro</div></div>
+              <div class="form-check form-switch mb-0"><input class="form-check-input dark-toggle" type="checkbox" onchange="toggleDark(this)" style="cursor:pointer;" /></div>
+            </div>
+            <div class="divider"></div>
+            <div class="section-title">Cuenta</div>
+            <div class="mb-3"><label class="form-label-pb">Nombre</label><input type="text" class="pb-input" id="ajustes-nombre" placeholder="Cargando..." /></div>
+            <div class="mb-3"><label class="form-label-pb">ID Estudiantil (Código Banner)</label><input type="text" class="pb-input" id="ajustes-id" placeholder="Tu código Banner" /></div>
+            <div class="mb-4"><label class="form-label-pb">Correo</label><input type="email" class="pb-input" id="ajustes-correo" placeholder="Cargando..." disabled /></div>
+            <button class="btn-red" onclick="guardarAjustes()">Guardar cambios</button>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="card-base p-4">
+            <div class="section-title">Soporte técnico</div>
+            <div class="mb-3"><label class="form-label-pb">Asunto</label><input type="text" class="pb-input" placeholder="Describe brevemente el problema…" /></div>
+            <div class="mb-4"><label class="form-label-pb">Mensaje</label><textarea class="pb-input" rows="5" placeholder="Detalla tu consulta o problema…" style="resize:vertical;"></textarea></div>
+            <button class="btn-red">Enviar mensaje</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<nav id="bottom-nav" style="display:none;">
+  <button class="bnav-btn active" id="bnav-inicio" onclick="showView('inicio')"><i class="bi bi-house-fill"></i><span>Inicio</span></button>
+  <button class="bnav-btn" id="bnav-rutas" onclick="showView('rutas')"><i class="bi bi-map-fill"></i><span>Rutas</span></button>
+  <button class="bnav-btn" id="bnav-planificador" onclick="showView('planificador')"><i class="bi bi-calendar3"></i><span>Planificar</span></button>
+  <button class="bnav-btn" id="bnav-notificaciones" onclick="showView('notificaciones')"><i class="bi bi-bell-fill"></i><span>Alertas</span><span class="bnav-badge" id="badge-bnav" style="display:none;">0</span></button>
+  <button class="bnav-btn" id="bnav-perfil" onclick="showView('perfil')"><i class="bi bi-person-fill"></i><span>Perfil</span></button>
+</nav>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
